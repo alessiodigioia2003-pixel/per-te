@@ -34,7 +34,7 @@ body, html {
   width: 100%; max-width: 280px; text-align: center; outline: none;
 }
 
-/* UNLOCK OVERLAY (No cuore) */
+/* UNLOCK OVERLAY */
 #unlock-overlay {
   position: fixed; inset: 0; background: var(--bg);
   display: flex; align-items: center; justify-content: center;
@@ -56,10 +56,11 @@ body, html {
   color: var(--text); width: 60px; height: 60px; border-radius: 50%; 
   cursor: pointer; pointer-events: auto; display: flex; align-items: center; justify-content: center;
 }
-.error-msg { color: #C4847A; font-size: 0.8rem; text-align: center; padding: 20px; }
 </style>
 </head>
 <body>
+
+<audio id="bg-music" src="canzone.mp3"></audio>
 
 <div id="lock">
   <p class="l-question">You know I tend to do it, because I'm attached to them. What are they?</p>
@@ -80,6 +81,7 @@ body, html {
 </div>
 
 <script>
+// Elenco aggiornato con video in 4a e 5a ultima posizione
 const files = [
   "IMG_0159.jpg", "IMG_0160.jpg", "IMG_0161.jpg", "IMG_0162.jpg", "IMG_0163.jpg",
   "IMG_0164.jpg", "IMG_0165.jpg", "IMG_0166.jpg", "IMG_0172.jpg", "IMG_0173.jpg",
@@ -96,10 +98,10 @@ const files = [
   "IMG_0260.jpg", "IMG_0261.jpg", "IMG_0263.jpg", "IMG_0264.jpg", "IMG_0265.jpg",
   "IMG_0266.jpg", "IMG_0267.jpg", "IMG_0268.jpg", "IMG_0269.jpg", "IMG_0270.jpg",
   "IMG_0271.jpg", "IMG_0272.jpg", "IMG_0276.jpg", "IMG_0277.jpg", "IMG_0278.jpg",
-  "IMG_0279.jpeg", "IMG_0280.jpeg", "IMG_0281.jpeg", "IMG_0282.jpeg", "IMG_0283.jpeg",
-  "IMG_0285.jpeg", "IMG_2084.jpeg",
-  "3C82549F-9397-4F41-924E-2C9B65CF8FEC (1).MP4",
-  "4324F29F-825D-4CCB-8623-BF25D4805863.mp4"
+  "IMG_0279.jpeg", "IMG_0280.jpeg", "IMG_0281.jpeg", "IMG_0282.jpeg", 
+  "4324F29F-825D-4CCB-8623-BF25D4805863.mp4", // Quint'ultimo
+  "3C82549F-9397-4F41-924E-2C9B65CF8FEC (1).MP4", // Quart'ultimo
+  "IMG_0283.jpeg", "IMG_0285.jpeg", "IMG_2084.jpeg" // Ultime 3
 ];
 
 let idx = 0;
@@ -107,6 +109,10 @@ const pass = 'memories';
 
 function check() {
   if(document.getElementById('ans-input').value.toLowerCase() === pass) {
+    // Fai partire la musica
+    const music = document.getElementById('bg-music');
+    music.play().catch(e => console.log("Audio bloccato dal browser"));
+
     const ov = document.getElementById('unlock-overlay');
     ov.classList.add('show');
     setTimeout(() => {
@@ -126,10 +132,12 @@ function render() {
   const el = document.createElement(isVid ? 'video' : 'img');
   el.src = file;
   el.className = 'ss-media';
-  if(isVid) { el.controls = true; el.autoplay = true; el.playsInline = true; }
-  el.onerror = () => {
-    wrap.innerHTML = `<div class="error-msg">Errore: "${file}" non trovato.<br>Controlla se su GitHub è scritto .JPG invece di .jpg</div>`;
-  };
+  if(isVid) { 
+    el.controls = true; 
+    el.autoplay = true; 
+    el.playsInline = true; 
+    el.volume = 0.5; // Audio del video leggermente più basso se vuoi sentire la musica
+  }
   wrap.appendChild(el);
 }
 
