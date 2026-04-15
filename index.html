@@ -6,40 +6,29 @@
 <title>Memory Lane</title>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
 <style>
-:root {
-  --bg: #0C0B0A;
-  --text: #F0EDE8;
-  --gold: #C9A96E;
-  --border: rgba(255,255,255,0.1);
-}
-body, html { 
-  background: var(--bg); color: var(--text); 
-  font-family: 'Jost', sans-serif; 
-  margin: 0; padding: 0; overflow: hidden; height: 100vh;
-}
+:root { --bg: #0C0B0A; --text: #F0EDE8; --gold: #C9A96E; --border: rgba(255,255,255,0.1); }
+body, html { background: var(--bg); color: var(--text); font-family: 'Jost', sans-serif; margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw; }
 .hidden { display: none !important; }
 
-/* LOCK SCREEN */
-#lock {
-  height: 100vh; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; text-align: center; padding: 2rem;
-}
-.l-question {
-  font-family: 'Playfair Display', serif; font-size: 1.3rem;
-  margin-bottom: 2rem; line-height: 1.5; font-style: italic;
-}
-.l-input {
-  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
-  padding: 1rem; color: var(--text); border-radius: 8px;
-  width: 100%; max-width: 280px; text-align: center; outline: none;
+/* AVVISO VOLUME */
+.volume-notice {
+  position: absolute; top: 20px; right: 20px;
+  font-size: 0.7rem; letter-spacing: 0.1em; color: var(--gold);
+  text-transform: uppercase; border: 1px solid var(--gold);
+  padding: 4px 8px; border-radius: 4px; opacity: 0.8;
 }
 
-/* UNLOCK OVERLAY */
-#unlock-overlay {
-  position: fixed; inset: 0; background: var(--bg);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.6s;
-}
+/* LOCK SCREEN */
+#lock { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 2rem; box-sizing: border-box; }
+.l-question { font-family: 'Playfair Display', serif; font-size: 1.3rem; margin-bottom: 2rem; line-height: 1.5; font-style: italic; }
+.l-input { background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 1rem; color: var(--text); border-radius: 8px; width: 100%; max-width: 280px; text-align: center; outline: none; font-size: 16px; }
+.btn-submit { margin-top: 1.5rem; background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 0.8rem 2.5rem; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.8rem; }
+
+/* INDIZIO (Nascosto di base) */
+#hint-text { margin-top: 1.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.4); font-style: italic; opacity: 0; transition: opacity 0.5s; }
+
+/* OVERLAY SBLOCCO */
+#unlock-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.6s; }
 #unlock-overlay.show { opacity: 1; }
 .u-text { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-style: italic; }
 
@@ -47,25 +36,22 @@ body, html {
 #slideshow { height: 100vh; width: 100vw; background: #000; position: relative; }
 .ss-media-wrap { height: 100%; width: 100%; display: flex; align-items: center; justify-content: center; }
 .ss-media { width: 100%; height: 100%; object-fit: contain; }
-.ss-nav {
-  position: absolute; bottom: 40px; left: 0; right: 0;
-  display: flex; justify-content: center; gap: 3rem; pointer-events: none;
-}
-.btn-arr {
-  background: rgba(255,255,255,0.1); border: 1px solid var(--border);
-  color: var(--text); width: 60px; height: 60px; border-radius: 50%; 
-  cursor: pointer; pointer-events: auto; display: flex; align-items: center; justify-content: center;
-}
+.ss-nav { position: absolute; bottom: 40px; left: 0; right: 0; display: flex; justify-content: center; gap: 3rem; pointer-events: none; }
+.btn-arr { background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: var(--text); width: 60px; height: 60px; border-radius: 50%; cursor: pointer; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
 </style>
 </head>
 <body>
 
-<audio id="bg-music" src="canzone.mp3"></audio>
+<audio id="bg-music" preload="auto">
+  <source src="canzone.mp3" type="audio/mpeg">
+</audio>
 
 <div id="lock">
+  <div class="volume-notice">Volume ON 🔊</div>
   <p class="l-question">You know I tend to do it, because I'm attached to them. What are they?</p>
-  <input class="l-input" id="ans-input" type="text" placeholder="your answer..." onkeydown="if(event.key==='Enter') check()">
-  <button style="margin-top:1.5rem;" onclick="check()" class="l-input">Enter</button>
+  <input class="l-input" id="ans-input" type="text" placeholder="your answer..." autocomplete="off">
+  <button class="btn-submit" onclick="check()">Enter</button>
+  <p id="hint-text">Indizio: pensa a cosa conservo sempre gelosamente...</p>
 </div>
 
 <div id="unlock-overlay">
@@ -81,7 +67,6 @@ body, html {
 </div>
 
 <script>
-// Elenco aggiornato con video in 4a e 5a ultima posizione
 const files = [
   "IMG_0159.jpg", "IMG_0160.jpg", "IMG_0161.jpg", "IMG_0162.jpg", "IMG_0163.jpg",
   "IMG_0164.jpg", "IMG_0165.jpg", "IMG_0166.jpg", "IMG_0172.jpg", "IMG_0173.jpg",
@@ -99,20 +84,25 @@ const files = [
   "IMG_0266.jpg", "IMG_0267.jpg", "IMG_0268.jpg", "IMG_0269.jpg", "IMG_0270.jpg",
   "IMG_0271.jpg", "IMG_0272.jpg", "IMG_0276.jpg", "IMG_0277.jpg", "IMG_0278.jpg",
   "IMG_0279.jpeg", "IMG_0280.jpeg", "IMG_0281.jpeg", "IMG_0282.jpeg", 
-  "4324F29F-825D-4CCB-8623-BF25D4805863.mp4", // Quint'ultimo
-  "3C82549F-9397-4F41-924E-2C9B65CF8FEC (1).MP4", // Quart'ultimo
-  "IMG_0283.jpeg", "IMG_0285.jpeg", "IMG_2084.jpeg" // Ultime 3
+  "4324F29F-825D-4CCB-8623-BF25D4805863.mp4",
+  "3C82549F-9397-4F41-924E-2C9B65CF8FEC (1).MP4",
+  "IMG_0283.jpeg", "IMG_0285.jpeg", "IMG_2084.jpeg"
 ];
 
 let idx = 0;
+let attempts = 0; // Contatore tentativi
 const pass = 'memories';
 
-function check() {
-  if(document.getElementById('ans-input').value.toLowerCase() === pass) {
-    // Fai partire la musica
-    const music = document.getElementById('bg-music');
-    music.play().catch(e => console.log("Audio bloccato dal browser"));
+document.getElementById('ans-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') check();
+});
 
+function check() {
+  const inputVal = document.getElementById('ans-input').value.toLowerCase().trim();
+  
+  if(inputVal === pass) {
+    const music = document.getElementById('bg-music');
+    music.play();
     const ov = document.getElementById('unlock-overlay');
     ov.classList.add('show');
     setTimeout(() => {
@@ -121,6 +111,17 @@ function check() {
       document.getElementById('slideshow').classList.remove('hidden');
       render();
     }, 2000);
+  } else {
+    attempts++; // Incrementa ogni volta che sbaglia
+    const input = document.getElementById('ans-input');
+    input.style.borderColor = 'red';
+    
+    // Se sbaglia 3 o più volte, mostra l'indizio
+    if (attempts >= 3) {
+      document.getElementById('hint-text').style.opacity = "1";
+    }
+    
+    setTimeout(() => input.style.borderColor = 'rgba(255,255,255,0.1)', 500);
   }
 }
 
@@ -132,12 +133,7 @@ function render() {
   const el = document.createElement(isVid ? 'video' : 'img');
   el.src = file;
   el.className = 'ss-media';
-  if(isVid) { 
-    el.controls = true; 
-    el.autoplay = true; 
-    el.playsInline = true; 
-    el.volume = 0.5; // Audio del video leggermente più basso se vuoi sentire la musica
-  }
+  if(isVid) { el.controls = true; el.autoplay = true; el.playsInline = true; }
   wrap.appendChild(el);
 }
 
