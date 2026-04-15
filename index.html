@@ -10,12 +10,12 @@
 body, html { background: var(--bg); color: var(--text); font-family: 'Jost', sans-serif; margin: 0; padding: 0; overflow: hidden; height: 100vh; width: 100vw; }
 .hidden { display: none !important; }
 
-/* AVVISO VOLUME */
+/* AVVISO VOLUME - Ora è esterno per restare sempre visibile */
 .volume-notice {
-  position: absolute; top: 20px; right: 20px;
+  position: fixed; top: 20px; right: 20px;
   font-size: 0.7rem; letter-spacing: 0.1em; color: var(--gold);
   text-transform: uppercase; border: 1px solid var(--gold);
-  padding: 4px 8px; border-radius: 4px; opacity: 0.8;
+  padding: 4px 8px; border-radius: 4px; opacity: 0.8; z-index: 200;
 }
 
 /* LOCK SCREEN */
@@ -24,8 +24,8 @@ body, html { background: var(--bg); color: var(--text); font-family: 'Jost', san
 .l-input { background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 1rem; color: var(--text); border-radius: 8px; width: 100%; max-width: 280px; text-align: center; outline: none; font-size: 16px; }
 .btn-submit { margin-top: 1.5rem; background: transparent; border: 1px solid var(--gold); color: var(--gold); padding: 0.8rem 2.5rem; border-radius: 8px; cursor: pointer; text-transform: uppercase; letter-spacing: 0.2em; font-size: 0.8rem; }
 
-/* INDIZIO (Nascosto di base) */
-#hint-text { margin-top: 1.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.4); font-style: italic; opacity: 0; transition: opacity 0.5s; }
+/* INDIZIO (Appare dopo 3 errori) */
+#hint-text { margin-top: 1.5rem; font-size: 0.8rem; color: rgba(255,255,255,0.4); font-style: italic; opacity: 0; transition: opacity 0.5s; max-width: 80%; }
 
 /* OVERLAY SBLOCCO */
 #unlock-overlay { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.6s; }
@@ -34,24 +34,24 @@ body, html { background: var(--bg); color: var(--text); font-family: 'Jost', san
 
 /* SLIDESHOW */
 #slideshow { height: 100vh; width: 100vw; background: #000; position: relative; }
-.ss-media-wrap { height: 100%; width: 100%; display: flex; align-items: center; justify-content: center; }
-.ss-media { width: 100%; height: 100%; object-fit: contain; }
-.ss-nav { position: absolute; bottom: 40px; left: 0; right: 0; display: flex; justify-content: center; gap: 3rem; pointer-events: none; }
+.ss-media-wrap { height: 100%; width: 100%; display: flex; align-items: center; justify-content: center; background: #000; }
+.ss-media { width: 100%; height: 100%; object-fit: contain; transition: opacity 0.3s; }
+.ss-nav { position: absolute; bottom: 40px; left: 0; right: 0; display: flex; justify-content: center; gap: 3rem; pointer-events: none; z-index: 150; }
 .btn-arr { background: rgba(255,255,255,0.1); border: 1px solid var(--border); color: var(--text); width: 60px; height: 60px; border-radius: 50%; cursor: pointer; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
 </style>
 </head>
 <body>
 
+<div class="volume-notice">Volume ON 🔊</div>
 <audio id="bg-music" preload="auto">
   <source src="canzone.mp3" type="audio/mpeg">
 </audio>
 
 <div id="lock">
-  <div class="volume-notice">Volume ON 🔊</div>
   <p class="l-question">You know I tend to do it, because I'm attached to them. What are they?</p>
   <input class="l-input" id="ans-input" type="text" placeholder="your answer..." autocomplete="off">
   <button class="btn-submit" onclick="check()">Enter</button>
-  <p id="hint-text">Indizio: pensa a cosa conservo sempre gelosamente...</p>
+  <p id="hint-text">There’s no help, clever girl — you can do it on your own</p>
 </div>
 
 <div id="unlock-overlay">
@@ -90,8 +90,19 @@ const files = [
 ];
 
 let idx = 0;
-let attempts = 0; // Contatore tentativi
+let attempts = 0;
 const pass = 'memories';
+
+// Funzione pre-caricamento per evitare il nero
+function preloadNext() {
+  if (idx < files.length - 1) {
+    const nextFile = files[idx + 1];
+    if (!nextFile.toLowerCase().endsWith('.mp4')) {
+      const img = new Image();
+      img.src = nextFile;
+    }
+  }
+}
 
 document.getElementById('ans-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') check();
@@ -99,7 +110,6 @@ document.getElementById('ans-input').addEventListener('keypress', function(e) {
 
 function check() {
   const inputVal = document.getElementById('ans-input').value.toLowerCase().trim();
-  
   if(inputVal === pass) {
     const music = document.getElementById('bg-music');
     music.play();
@@ -112,29 +122,32 @@ function check() {
       render();
     }, 2000);
   } else {
-    attempts++; // Incrementa ogni volta che sbaglia
+    attempts++;
     const input = document.getElementById('ans-input');
     input.style.borderColor = 'red';
-    
-    // Se sbaglia 3 o più volte, mostra l'indizio
-    if (attempts >= 3) {
-      document.getElementById('hint-text').style.opacity = "1";
-    }
-    
+    if (attempts >= 3) { document.getElementById('hint-text').style.opacity = "1"; }
     setTimeout(() => input.style.borderColor = 'rgba(255,255,255,0.1)', 500);
   }
 }
 
 function render() {
   const wrap = document.getElementById('ss-wrap');
-  wrap.innerHTML = '';
   const file = files[idx];
   const isVid = file.toLowerCase().endsWith('.mp4');
+  
   const el = document.createElement(isVid ? 'video' : 'img');
   el.src = file;
   el.className = 'ss-media';
   if(isVid) { el.controls = true; el.autoplay = true; el.playsInline = true; }
-  wrap.appendChild(el);
+  
+  // Quando la nuova immagine/video è pronta, la mostriamo
+  el.onload = () => { wrap.innerHTML = ''; wrap.appendChild(el); preloadNext(); };
+  if(isVid) { // Per i video usiamo un evento diverso
+    el.onloadeddata = () => { wrap.innerHTML = ''; wrap.appendChild(el); preloadNext(); };
+  }
+  
+  // Se l'immagine è già in cache o carica istantaneamente
+  if(!isVid && el.complete) { wrap.innerHTML = ''; wrap.appendChild(el); preloadNext(); }
 }
 
 function next() { if(idx < files.length - 1) { idx++; render(); } }
